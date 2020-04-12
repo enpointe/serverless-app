@@ -12,9 +12,9 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
-
   environment:
     TODO_TABLE: Todo-${self:provider.stage}
+    FILES_ID_INDEX: FileIdIndex
     TODO_S3_BUCKET: serverless-todo-ktripp-${self:provider.stage}
 
   iamRoleStatements:
@@ -91,13 +91,12 @@ functions:
   #         method: delete
   #         path: todos/{todoId}
 
-  # TODO: Configure this function
-  # GenerateUploadUrl:
-  #   handler: src/lambda/http/generateUploadUrl.handler
-  #   events:
-  #     - http:
-  #         method: post
-  #         path: todos/{todoId}/attachment
+  GenerateUploadUrl:
+    handler: src/lambda/http/generateUploadUrl.handler
+    events:
+      - http:
+          method: post
+          path: todos/{todoId}/attachment
 
 resources:
   Resources:
@@ -121,7 +120,6 @@ resources:
           Ref: ApiGatewayRestApi
         ValidateRequestBody: true
         ValidateRequestParameters: false
-
 
     AttachmentsBucket:
       Type: AWS::S3::Bucket
