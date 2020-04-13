@@ -12,8 +12,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const todoId = event.pathParameters.todoId
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
 
-  console.log("Fetching record")
-  let entry = await docClient.get({
+  console.log("Procesing event for id", todoId, updatedTodo)
+  await docClient.get({
     TableName: todoTable,
     Key: {'id': todoId}
   }).promise()
@@ -29,14 +29,25 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     }
   })
 
-  console.log("Procesing event for id", todoId, updatedTodo)
-  await docClient.put({
+  var params = {
     TableName: todoTable,
-    Item: {
-      id: todoId,
-      ...updatedTodo
-    }
-  }).promise()
+    Key: {
+      id: todoId
+    },
+    UpdateExpression: "set #n=:n, dueDate=:u, done=:d",
+    ExpressionAttributeValues:{
+        ":n": updatedTodo.name,
+        ":u": updatedTodo.dueDate,
+        ":d": updatedTodo.done
+    },
+    ExpressionAttributeNames:{
+      "#n": "name"
+    },
+    ReturnValues:"UPDATED_NEW"
+  }
+
+  // We should be able to do an update but that doesn't seem to be working
+  const data = await docClient.update(params).promise()
   .catch(function(error) {
     return {
       statusCode: 500,
@@ -49,20 +60,12 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     }
   })
 
-  console.log("Fetching updated record")
-  entry = await docClient.get({
-    TableName: todoTable,
-    Key: {'id': todoId}
-  }).promise()
-
   return {
     statusCode: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
     body: JSON.stringify({
-      entry
     })
   }
-  return undefined
 }
