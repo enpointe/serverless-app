@@ -47,7 +47,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   }
 
   // We should be able to do an update but that doesn't seem to be working
-  const data = await docClient.update(params).promise()
+  await docClient.update(params).promise()
   .catch(function(error) {
     return {
       statusCode: 500,
