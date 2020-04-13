@@ -17,16 +17,6 @@ provider:
     FILES_ID_INDEX: FileIdIndex
     TODO_S3_BUCKET: serverless-todo-ktripp-${self:provider.stage}
 
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Scan
-        - dynamodb:PutItem
-        - dynamodb:GetItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
-
 custom:
   topicName: todoTopic-${self:provider.stage}
   documentation:
@@ -55,6 +45,11 @@ functions:
           method: get
           path: todos
           cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
 
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
@@ -69,6 +64,11 @@ functions:
             description: Create a todo item
             requestModels:
               'application/json': TodoRequest
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
 
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
@@ -83,6 +83,12 @@ functions:
             description: Update a todo
             requestModels:
               'application/json': TodoRequest
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
 
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
@@ -97,6 +103,11 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+        - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
 
 resources:
   Resources:
