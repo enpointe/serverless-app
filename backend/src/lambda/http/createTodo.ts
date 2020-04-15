@@ -17,7 +17,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const newTodo: CreateTodoRequest = JSON.parse(event.body)
   console.log(`Timestamp ${timestamp}`)
   const newItem = {
-    id: itemId,
+    todoId: itemId,
     userId: itemId,
     createdAt: timestamp,
     done: false,

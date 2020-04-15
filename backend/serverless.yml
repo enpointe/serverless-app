@@ -13,8 +13,8 @@ provider:
   region: ${opt:region, 'us-east-1'}
 
   environment:
-    TODO_TABLE: Todo-${self:provider.stage}
-    FILES_ID_INDEX: FileIdIndex
+    TODO_TABLE: TODO-${self:provider.stage}
+    TODO_INDEX_TABLE: TODO-Index-${self:provider.stage}
     TODO_S3_BUCKET: serverless-todo-ktripp-${self:provider.stage}
 
 custom:
@@ -32,6 +32,14 @@ custom:
       - name: TodoUpdateRequest
         contentType: application/json
         schema: ${file(src/models/TodoUpdate.ts)}
+
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}/index/${self:provider.environment.TODO_INDEX_TABLE}
+
 
 functions:
 
@@ -111,17 +119,34 @@ functions:
 
 resources:
   Resources:
+    # Define our table so that searches can be conducted via userId or todoId
     TodoDynamoDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: id
+          - AttributeName: todoId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: dueDate
             AttributeType: S
         KeySchema:
-          - AttributeName: id
+          - AttributeName: userId
             KeyType: HASH
+          - AttributeName: todoId
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODO_TABLE}
+        LocalSecondaryIndexes: 
+          - IndexName: ${self:provider.environment.TODO_INDEX_TABLE}
+            KeySchema: 
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: dueDate
+              KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+                
 
     RequestBodyValidator:
       Type: AWS::ApiGateway::RequestValidator

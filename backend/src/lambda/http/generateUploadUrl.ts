@@ -20,7 +20,10 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   let entry = await docClient.get({
     TableName: todoTable,
-    Key: {'id': todoId}
+    Key: {
+      todoId: todoId,
+      userId: todoId
+    }
   }).promise()
   .catch(function(error) {
     console.log(`File to fetch ${todoId}: ${error}`)

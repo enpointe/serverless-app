@@ -15,7 +15,10 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   console.log("Procesing event for id", todoId, updatedTodo)
   await docClient.get({
     TableName: todoTable,
-    Key: {'id': todoId}
+    Key: {
+      todoId: todoId,
+      userId: todoId
+    }
   }).promise()
   .catch(function(error) {
     return {
@@ -32,7 +35,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   var params = {
     TableName: todoTable,
     Key: {
-      id: todoId
+      todoId: todoId,
+      userId: todoId,
     },
     UpdateExpression: "set #n=:n, dueDate=:u, done=:d",
     ExpressionAttributeValues:{
@@ -59,7 +63,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       })
     }
   })
-
   return {
     statusCode: 200,
     headers: {

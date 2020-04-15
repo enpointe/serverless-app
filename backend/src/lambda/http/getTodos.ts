@@ -10,6 +10,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   console.log('Processing get TODO event: ', event)
 
+  // TODO: Fetch user from JWT token
   const result = await docClient.scan({
     TableName: todoTable
   }).promise()
