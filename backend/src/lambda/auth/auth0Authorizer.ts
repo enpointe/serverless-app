@@ -1,12 +1,12 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
 import 'source-map-support/register'
 
-//import { verify, decode } from 'jsonwebtoken'
-import { decode } from 'jsonwebtoken'
+import { verify, decode } from 'jsonwebtoken'
 import { createLogger } from '../../utils/logger'
-//import Axios from 'axios'
+import Axios from 'axios'
 import { Jwt } from '../../auth/Jwt'
 import { JwtPayload } from '../../auth/JwtPayload'
+import { certToPEM } from '../../utils/cert'
 
 const logger = createLogger('auth')
 
@@ -14,6 +14,7 @@ const logger = createLogger('auth')
 // to verify JWT token signature.
 // To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
 const jwksUrl = 'https://dev-12ahvh6i.auth0.com/.well-known/jwks.json'
+
 
 export const handler = async (
   event: CustomAuthorizerEvent
@@ -62,8 +63,20 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  console.log(token, jwt, jwksUrl)
-  return undefined
+
+  const header = jwt.header
+
+  // Make a call to Auth0 
+  logger.debug(`Fetching signing Keys from Auth0 endpoint ${jwksUrl}`)
+  let response = await Axios.get(jwksUrl, {
+    headers: {
+      'Content-Type': 'application/json',
+      "Access-Control-Allow-Origin": "*",
+      'Access-Control-Allow-Credentials': true,
+    }
+  });
+  let key = await getSigningKey(response, header.kid)
+  return verify(token, key.publicKey, { algorithms: ['RS256'] }) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
@@ -78,3 +91,39 @@ function getToken(authHeader: string): string {
   return token
 }
 
+/**
+ * Based on the code derived from
+ * 
+ * https://github.com/sgmeyer/auth0-node-jwks-rs256/blob/master/src/lib/JwksClient.js#L30-L58
+ **/
+async function getSigningKey(response, keyID)  {
+  let keys = response.data.keys
+  if (!keys || !keys.length) {
+    logger.error('The JWKS endpoint response did not contain any keys')
+    throw new Error('The JWKS endpoint did not contain any keys')
+  }
+
+  const signingKeys = keys.filter(
+    key => key.use === 'sig' // JWK property `use` determines the JWK is for signing
+      && key.kty === 'RSA' // We are only supporting RSA (RS256)
+      && key.kid           // The `kid` must be present to be useful for later
+      && ((key.x5c && key.x5c.length) || (key.n && key.e)) // Has useful public keys
+    ).map(key => {
+      return { kid: key.kid, nbf: key.nbf, publicKey: certToPEM(key.x5c[0]) };
+    }
+  );
+
+  // If at least one signing key doesn't exist we have a problem... Kaboom.
+  if (!signingKeys.length) {
+    logger.error("No signing keys returned on endpoint request")
+    throw new Error('The JWKS endpoint did not contain any signing keys');
+  }
+
+  // Check to make sure the id of the signing key match
+  const signingKey = signingKeys.find(key => key.kid === keyID);
+  if(!signingKey){
+    logger.error(`No signing key for ${keyID} found`)
+    throw new Error('Invalid signing keys')
+  }
+  return signingKey
+};
