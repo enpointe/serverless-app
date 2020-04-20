@@ -20,20 +20,45 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const timestamp = new Date().toISOString()
   const newTodo: CreateTodoRequest = JSON.parse(event.body)
 
-  logger.info(`Processing request to create todo ${todoId} with data ${newTodo} for user ${userId}`)
-  const newItem = {
-    todoId: todoId,
-    userId: userId,
-    createdAt: timestamp,
-    done: false,
-    ...newTodo
+  if (!newTodo.name || !newTodo.name.trim() || 0 === newTodo.name.length) {
+    logger.error(`Failed to create todofor user ${userId}: no task description specified`);
+    return {
+      statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({
+        "error": `No description specified for todo task for user ${userId}`
+      })
+    }
   }
+  logger.info(`todo name ${newTodo.name}`)
 
-  await docClient.put({
-    TableName: todoTable,
-    Item: newItem
-  }).promise()
-  .catch(function(error) {
+  try {
+    logger.info(`Processing request to create todo ${todoId} with data ${newTodo} for user ${userId}`)
+    const newItem = {
+      todoId: todoId,
+      userId: userId,
+      createdAt: timestamp,
+      done: false,
+      ...newTodo
+    }
+    await docClient.put({
+      TableName: todoTable,
+      Item: newItem
+    }).promise()
+    logger.info(`Successfully created todo ${todoId} for user ${userId}`);
+    return {
+      statusCode: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({
+        newItem
+      })
+    }
+  }
+  catch(error) {
     logger.error(`Failed to create todo ${todoId} for user ${userId}: ${error}`);
     return {
       statusCode: 500,
@@ -44,16 +69,5 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         "error": error
       })
     }
-  })
-
-  logger.error(`Successfully created todo ${todoId} for user ${userId}`);
-  return {
-    statusCode: 201,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-    },
-    body: JSON.stringify({
-      newItem
-    })
   }
 }
