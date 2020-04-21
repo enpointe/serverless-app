@@ -21,6 +21,7 @@ cd backend
 npm install
 sls deploy -v
 ```
+
 This should start a development server that the React application in client will interface.  Make note of the endpoint as it will be necessary to configure this in the Frontend client application.
 
 The serverless endpoint can be retrieved after deployment via 

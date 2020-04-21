@@ -5,7 +5,10 @@ import { createLogger } from '../../utils/logger'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
 
-const docClient = new AWS.DynamoDB.DocumentClient()
+const AWSXRay = require('aws-xray-sdk')
+const XAWS = AWSXRay.captureAWS(AWS)
+
+const docClient = new XAWS.DynamoDB.DocumentClient()
 const todoTable = process.env.TODO_TABLE
 const logger = createLogger('updateToDoHandler')
 

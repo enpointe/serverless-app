@@ -4,7 +4,10 @@ import {getUserId} from '../utils';
 import { createLogger } from '../../utils/logger'
 import { TodoItem } from '../../models/TodoItem'
 
-const docClient = new AWS.DynamoDB.DocumentClient()
+const AWSXRay = require('aws-xray-sdk')
+const XAWS = AWSXRay.captureAWS(AWS)
+
+const docClient = new XAWS.DynamoDB.DocumentClient()
 
 const todoTable = process.env.TODO_TABLE
 const todoIndex = process.env.TODO_INDEX

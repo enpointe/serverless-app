@@ -5,8 +5,11 @@ import { createLogger } from '../../utils/logger'
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 
-const docClient = new AWS.DynamoDB.DocumentClient()
-const s3 = new AWS.S3({
+const AWSXRay = require('aws-xray-sdk')
+const XAWS = AWSXRay.captureAWS(AWS)
+
+const docClient = new XAWS.DynamoDB.DocumentClient()
+const s3 = new XAWS.S3({
   signatureVersion: 'v4'
 })
 const logger = createLogger('updateURLHandler')
@@ -30,7 +33,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     }
   }).promise()
   .catch(function(error) {
-    logger.error(`File to fetch todo ${todoId} for ${userId}: ${error}`)
+    logger.error(`Failed to fetch todo ${todoId} for ${userId}: ${error}`)
     return {
       statusCode: 404,
       headers: {
