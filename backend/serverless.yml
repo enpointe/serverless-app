@@ -3,7 +3,13 @@ service:
 
 plugins:
   - serverless-webpack
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
+  - serverless-plugin-canary-deployments
   - serverless-iam-roles-per-function
+
+package:
+  individually: true
 
 provider:
   name: aws
@@ -11,6 +17,10 @@ provider:
 
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
+
+  tracing:
+    lambda: true
+    apiGateway: true 
 
   environment:
     TODO_TABLE: TODO-${self:provider.stage}
@@ -29,10 +39,13 @@ custom:
     models:
       - name: UpdateToDoRequest
         contentType: application/json
-        schema: ${file(src/requests/UpdateTodoRequest.ts)}
+        schema: ${file(models/update-todo-request.json)}
       - name: CreateToDoRequest
         contentType: application/json
-        schema: ${file(src/requests/CreateTodoRequest.ts)}
+        schema: ${file(models/create-todo-request.json)}
+  webpackIncludeModules:
+    forceExclude:
+      - aws-sdk
 
 
   iamRoleStatements:
@@ -79,7 +92,7 @@ functions:
             summary: Create a new todo
             description: Create a todo item
             requestModels:
-              'application/json': CreateTodoRequest
+              'application/json': CreateToDoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -104,7 +117,7 @@ functions:
             summary: Update a todo
             description: Update a todo
             requestModels:
-              'application/json': UpdateTodoRequest
+              'application/json': UpdateToDoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
