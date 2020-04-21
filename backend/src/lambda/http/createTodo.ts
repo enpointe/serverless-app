@@ -2,6 +2,7 @@ import 'source-map-support/register'
 import * as AWS  from 'aws-sdk'
 import * as uuid from 'uuid'
 import {getUserId} from '../utils';
+import { TodoItem } from '../../models/TodoItem';
 import { createLogger } from '../../utils/logger'
 
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
@@ -21,7 +22,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const newTodo: CreateTodoRequest = JSON.parse(event.body)
 
   if (!newTodo.name || !newTodo.name.trim() || 0 === newTodo.name.length) {
-    logger.error(`Failed to create todofor user ${userId}: no task description specified`);
+    logger.error(`Failed to create todo for user ${userId}: no task description specified`);
     return {
       statusCode: 400,
       headers: {
@@ -36,7 +37,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   try {
     logger.info(`Processing request to create todo ${todoId} with data ${newTodo} for user ${userId}`)
-    const newItem = {
+    const newItem: TodoItem = {
       todoId: todoId,
       userId: userId,
       createdAt: timestamp,
@@ -47,14 +48,14 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       TableName: todoTable,
       Item: newItem
     }).promise()
-    logger.info(`Successfully created todo ${todoId} for user ${userId}`);
+    logger.info(`Successfully created todo ${todoId} for user ${userId}: ${newItem}`);
     return {
       statusCode: 201,
       headers: {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        newItem
+        item: newItem
       })
     }
   }

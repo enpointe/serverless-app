@@ -15,15 +15,26 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const userId = getUserId(event)
   logger.info(`Processing request to delete todo ${todoId} for user ${userId}`)
 
-  var params = {
-    TableName: todoTable,
-    Key: {
-      todoId: todoId,
-      userId: userId
+  
+  try {
+    var params = {
+      TableName: todoTable,
+      Key: { userId, todoId }
+    }
+    await docClient.delete(params).promise()
+    logger.info(`Successfully deleted todo ${todoId} for user ${userId}`)
+
+    // TODO: Although not called for in assignment we should delete the
+    // associated image if it exists
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: ''
     }
   }
-  await docClient.delete(params).promise()
-  .catch(function(error) {
+  catch(error) {
     logger.error(`Delete failed ${error}`)
     return {
       statusCode: 404,
@@ -34,15 +45,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         "error": error
       })
     }
-  })
-  logger.info(`Successfully deleted todo ${todoId} for user ${userId}`)
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-    },
-    body: JSON.stringify({
-    })
   }
 }
 
