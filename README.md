@@ -19,6 +19,7 @@ To deploy an application run the following commands:
 ```
 cd backend
 npm install
+export NODE_OPTIONS=--max_old_space_size=4096
 sls deploy -v
 ```
 
