@@ -30,7 +30,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   // We should be able to do an update but that doesn't seem to be working
   let uploadUrl
   try {
-    uploadUrl = await BL.getAttachmentUrl(userId, todoId)
+    uploadUrl = await BL.addAttachmentUrl(userId, todoId)
   }
   catch(error) {
     logger.error(`File to update todo ${todoId} for ${userId}: ${error}`)

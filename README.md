@@ -49,46 +49,49 @@ This will start the React Application and redirect the browser interface on your
 The development tree is broken into two primary sections. One for the frontend client and one for the backend serverless implementation.
 
 ```
-├── ASSIGNMENT.md           - Original Assignment
+├── ASSIGNMENT.md           - Udacity Project Assignment
 ├── README.md               - Project Description
-├── backend
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── serverless.yml      - Serverless Deployment file
-│   ├── src                 - Backend source code
-│   ├── tsconfig.json
-│   └── webpack.config.js
-├── client                  - Client code 
+├── backend                 - Backend Serverless Implemation
+├── client                  - React Client
 └── postman_collection.json - Postman collection for REST API
 ```
 
 ### Backend Project Layout
 
 ```
-backend/src
+├── models
+│   ├── create-todo-request.json        - Create TODO schema
+│   └── update-todo-request.json        - Update TODO schema
+├── package-lock.json
+├── package.json
+├── serverless.yml                      - Serverless Configuration
 ├── auth
 │   ├── Jwt.ts
 │   ├── JwtPayload.ts
 │   └── utils.ts
 ├── buisnessLogic
+│   │   └── bl.ts                       - Buisness Logic Abstraction
 ├── dataLayer
-├── lambda
-│   ├── auth
-│   │   └── auth0Authorizer.ts      - Auth handler
-│   ├── http
-│   │   ├── createTodo.ts           - Create Handler
-│   │   ├── deleteTodo.ts           - Delete Handler
-│   │   ├── generateUploadUrl.ts    - Upload handler
-│   │   ├── getTodos.ts             - Get Todos Handler
-│   │   └── updateTodo.ts           - Update Todos Handler
-│   └── utils.ts
-├── models                          - Data Models
-│   ├── TodoItem.ts             
-│   └── TodoUpdate.ts
-├── requests
-│   ├── CreateTodoRequest.ts         
-│   └── UpdateTodoRequest.ts
-└── utils
-    ├── cert.ts
-    └── logger.ts
+│   │   └── db.ts                       - Database Extraction
+│   ├── lambda
+│   │   ├── auth
+│   │   │   └── auth0Authorizer.ts      - Auth0 handler
+│   │   ├── http
+│   │   │   ├── createTodo.ts           - Create Handler
+│   │   │   ├── deleteTodo.ts           - Delete Handler
+│   │   │   ├── generateUploadUrl.ts    - Upload handler
+│   │   │   ├── getTodos.ts             - Get Todos Handler
+│   │   │   └── updateTodo.ts           - Update Todos Handler
+│   │   └── utils.ts
+│   ├── models
+│   │   ├── TodoItem.ts                 - Create TODO interface
+│   │   └── TodoUpdate.ts               - Update TODO interface
+│   ├── requests
+│   │   ├── CreateTodoRequest.ts        
+│   │   └── UpdateTodoRequest.ts        
+│   └── utils
+│       ├── cert.ts                     - Certificate Utility
+│       └── logger.ts                   - Logger Utility
+├── tsconfig.json
+└── webpack.config.js
 ```
